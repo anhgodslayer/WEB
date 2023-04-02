@@ -4,7 +4,7 @@ from .scheduler import scheduler
 import feedparser
 from datetime import datetime
 from django.views import View
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # Create your views here.
 mydb = mysql.connector.connect(
         host="localhost",
@@ -104,7 +104,16 @@ def list(request):
     cursor.execute(list)
     result = cursor.fetchall()
     mydb.commit()
-    return render(request, 'function/list.html',{'result': result})
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(result, 10)
+    try:
+        result = paginator.page(page)
+    except PageNotAnInteger:
+        result = paginator.page(1)
+    except EmptyPage:
+        result = paginator.page(paginator.num_pages)
+    return render(request, 'function/list.html',{'result': result},)
 
 def config(request):
     global default
